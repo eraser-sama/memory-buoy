@@ -1,0 +1,58 @@
+# 🧠 claude-context-guardian
+
+为 Claude Code 提供上下文实时监控与压缩/恢复闭环的工具集。
+
+## 解决什么问题
+
+Claude Code 会话变长后，上下文会被填满，模型开始变傻、变慢，最终报错。官方 /compact 能压缩，但压缩前的任务状态会丢失，压缩后不知道怎么接着干。
+
+本项目提供三层能力：
+
+1. 实时监控：状态栏实时显示上下文占用百分比，0–60% 黄、60–80% 橙、80%+ 红并挂 ⚠️。
+2. 压缩落盘：用户输入【压缩上下文】，任务状态落盘到项目级记忆文件，然后提示用户执行 /compact。
+3. 恢复续接：用户输入【继续】，自动读取记忆文件，从上次的“下一步”接着干。
+
+## 安装
+
+git clone <repo>
+cd claude-context-guardian
+bash install.sh
+
+install.sh 会把脚本复制到 ~/.claude/scripts/，把 Skill 复制到 ~/.claude/skills/context-compress/，并提示你手动合并 settings.example.json 到 ~/.claude/settings.json。
+
+## 配置
+
+在 ~/.claude/settings.json 中加入 statusLine 和 hooks 配置，指向 context_statusline.py 和 context_hook.py。完整示例见 settings.example.json。
+
+## 使用
+
+1. 状态栏：自动显示 📊 Context: 42% (~84k/200k)。
+2. 压缩：输入【压缩上下文】，模型落盘后提示你执行 /compact。
+3. 恢复：/compact 后输入【继续】，模型读取记忆文件接着干。
+
+## 依赖
+
+- Python 3.10+
+- PyYAML（python3 -m pip install PyYAML）
+- Claude Code 2.1.283 或以上
+
+## 记忆文件
+
+存放在 <项目根>/.claude/context-memory/，YAML front matter + Markdown 正文。latest.md 记录最近一次记忆文件，恢复时第一入口。
+
+## 已实测结论
+
+- statusLine payload 含 used_percentage、workspace.project_dir、session_id、transcript_path。
+- Hook payload 只有 prompt、session_id、transcript_path、cwd，不含 used_percentage。
+- 手动 /compact 后 session_id 不变，used_percentage 归 0。
+- current_usage 不含本轮 output_tokens。
+
+## 已知限制
+
+- Hook 必须读 statusLine 缓存拿占用率。
+- Auto-compact 是否换 session_id 待验证。
+- 时间戳默认东八区（+08:00），可通过 CONTEXT_TZ_OFFSET 环境变量调整。
+
+## 许可
+
+MIT

@@ -1,0 +1,18 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "python3 ~/.claude/scripts/context_statusline.py"
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/scripts/context_hook.py"
+          }
+        ]
+      }
+    ]
+  }
+}
