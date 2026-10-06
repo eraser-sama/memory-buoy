@@ -56,3 +56,11 @@ Stored under <project>/.claude/context-memory/, with YAML front matter and Markd
 ## License
 
 MIT
+
+## The ? marker in the status line
+
+When the status line shows 200k and the model id does not start with claude-, a ? is appended to indicate the limit may be inaccurate.
+
+Example: 📊 Context: 12% (~23k/200k) ?
+
+This means the model is a third-party model and Claude Code fell back to the default 200K. If the model actually supports a larger window, override it with CLAUDE_CODE_MAX_CONTEXT_TOKENS.

@@ -52,6 +52,7 @@ def main() -> None:
     ws = d.get("workspace") or {}
     project_dir = ws.get("project_dir") or d.get("cwd") or ""
     transcript_path = d.get("transcript_path") or ""
+    model_id = (d.get("model") or {}).get("id") or ""
 
     if session_id:
         _write_cache(session_id, {
@@ -81,7 +82,10 @@ def main() -> None:
     tokens_k = total_in // 1000
     size_k = size // 1000
 
-    print(f"{color}📊 Context: {used}% (~{tokens_k}k/{size_k}k){warn}{RESET}")
+    uncertain = ""
+    if not model_id.startswith("claude-") and size == 200000:
+        uncertain = " ?"
+    print(f"{color}📊 Context: {used}% (~{tokens_k}k/{size_k}k){warn}{uncertain}{RESET}")
 
 
 if __name__ == "__main__":

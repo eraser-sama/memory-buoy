@@ -56,3 +56,10 @@ install.sh 会把脚本复制到 ~/.claude/scripts/，把 Skill 复制到 ~/.cla
 ## 许可
 
 MIT
+## 状态栏的 ? 标记
+
+状态栏显示 200k 且模型 ID 不以 claude- 开头时，末尾会加一个 ?，提示该上限可能不准确。
+
+例如：📊 Context: 12% (~23k/200k) ?
+
+这表示模型是第三方模型，Claude Code 回退到了默认 200K。如果模型实际支持更大窗口，用 CLAUDE_CODE_MAX_CONTEXT_TOKENS 覆盖。
