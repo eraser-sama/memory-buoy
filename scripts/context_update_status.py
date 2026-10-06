@@ -55,6 +55,8 @@ def main() -> int:
     fm["status"] = args.new_status
     if args.new_status == "consumed":
         fm["resumed_at"] = _now_iso()
+    else:
+        fm.pop("resumed_at", None)
 
     fm_text = yaml.safe_dump(fm, allow_unicode=True, sort_keys=False).strip()
     new_text = f"---\n{fm_text}\n---\n{rest}"

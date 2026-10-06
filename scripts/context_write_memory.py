@@ -64,7 +64,10 @@ def _backup_existing(target: Path, session_id: str) -> None:
 
 def _update_latest(base: Path, target: Path, saved_at: str, session_id: str) -> None:
     latest = base / "latest.md"
-    rel = target.relative_to(base.parent.parent) if base.parent.parent in target.parents else target
+    try:
+        rel = target.relative_to(base.parent.parent)
+    except ValueError:
+        rel = target
     content = (
         "---\n"
         f"path: {rel}\n"

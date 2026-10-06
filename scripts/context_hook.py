@@ -20,7 +20,10 @@ def _read_cache(session_id: str) -> dict:
         return {}
     try:
         return json.loads(f.read_text(encoding="utf-8"))
-    except Exception:
+    except OSError:
+        return {}
+    except json.JSONDecodeError as exc:
+        print(f"context_hook: cache JSON corrupted: {exc}", file=sys.stderr)
         return {}
 
 
@@ -60,14 +63,25 @@ def _find_memory_file(project_root: str, session_id: str) -> Path | None:
     latest = base / "context-memory" / "latest.md"
     if latest.is_file():
         try:
-            for line in latest.read_text(encoding="utf-8").splitlines():
-                if "path:" in line.lower():
+            lines = latest.read_text(encoding="utf-8").splitlines()
+            fm_lines: list[str] = []
+            dash_count = 0
+            for line in lines:
+                if line.strip() == "---":
+                    dash_count += 1
+                    if dash_count == 2:
+                        break
+                    continue
+                if dash_count == 1:
+                    fm_lines.append(line)
+            for line in fm_lines:
+                if line.lower().startswith("path:"):
                     p = line.split(":", 1)[1].strip().strip('"').strip("'")
                     if p:
                         candidate = Path(project_root) / p if not Path(p).is_absolute() else Path(p)
                         if candidate.is_file():
                             return candidate
-        except Exception:
+        except OSError:
             pass
     single = base / "CONTEXT_MEMORY.md"
     if single.is_file():
@@ -103,8 +117,9 @@ def main() -> None:
     # ---------- 【压缩上下文】----------
     if TRIGGER_COMPRESS in prompt:
         pct = cache.get("used_percentage")
-        if pct is None:
+        if not isinstance(pct, (int, float)):
             _emit("【压缩上下文】触发。但占用率未知，请用户手动确认是否压缩。")
+            return
         if pct >= 60:
             _emit(f"【压缩上下文】触发。当前占用约 {pct}%，请立即执行 context-compress Skill："
                   "准备正文内容，调用 context_write_memory.py 落盘，然后提示用户执行 /compact 并说【继续】。")
