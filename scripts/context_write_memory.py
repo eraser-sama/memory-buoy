@@ -57,8 +57,8 @@ def _backup_existing(target: Path, session_id: str) -> None:
     bak = target.with_name(f"CONTEXT_MEMORY_{session_id}_{ts}.md.bak")
     try:
         bak.write_bytes(target.read_bytes())
-    except OSError:
-        pass
+    except OSError as exc:
+        print(f"context_write_memory: backup failed: {exc}", file=sys.stderr)
     _rotate_backups(target.parent, session_id)
 
 
@@ -75,9 +75,12 @@ def _update_latest(base: Path, target: Path, saved_at: str, session_id: str) -> 
         f"saved_by: {session_id}\n"
         "---\n"
     )
-    tmp = latest.with_suffix(".md.tmp")
-    tmp.write_text(content, encoding="utf-8")
-    os.replace(tmp, latest)
+    tmp = latest.with_name(latest.name + ".tmp")
+    try:
+        tmp.write_text(content, encoding="utf-8")
+        os.replace(tmp, latest)
+    except OSError as exc:
+        print(f"context_write_memory: latest.md update failed: {exc}", file=sys.stderr)
 
 
 def main() -> int:
@@ -94,8 +97,18 @@ def main() -> int:
         print(f"body file not found: {body_path}", file=sys.stderr)
         return 1
 
-    body = body_path.read_text(encoding="utf-8")
-    target = _choose_path(project_root, args.session_id)
+    try:
+        body = body_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        print(f"cannot read body file: {exc}", file=sys.stderr)
+        return 1
+
+    try:
+        target = _choose_path(project_root, args.session_id)
+    except OSError as exc:
+        print(f"cannot create memory dir: {exc}", file=sys.stderr)
+        return 1
+
     saved_at = _now_iso()
 
     front = {
@@ -110,9 +123,14 @@ def main() -> int:
     content = f"---\n{fm_text}\n---\n\n{body.lstrip()}"
 
     _backup_existing(target, args.session_id)
-    tmp = target.with_suffix(".md.tmp")
-    tmp.write_text(content, encoding="utf-8")
-    os.replace(tmp, target)
+
+    tmp = target.with_name(target.name + ".tmp")
+    try:
+        tmp.write_text(content, encoding="utf-8")
+        os.replace(tmp, target)
+    except OSError as exc:
+        print(f"cannot write memory file: {exc}", file=sys.stderr)
+        return 1
 
     _update_latest(target.parent, target, saved_at, args.session_id)
 

@@ -18,6 +18,7 @@ RESET = "\033[0m"
 
 
 def _write_cache(session_id: str, payload: dict) -> None:
+    """写缓存给 Hook 用。任何失败静默——状态栏不能崩。"""
     try:
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
         cache_file = CACHE_DIR / f"{session_id}.json"
@@ -27,9 +28,9 @@ def _write_cache(session_id: str, payload: dict) -> None:
                 if (old.get("used_percentage") == payload.get("used_percentage")
                         and time.time() - old.get("written_at_ts", 0) < THROTTLE_SECONDS):
                     return
-            except Exception:
+            except (OSError, json.JSONDecodeError):
                 pass
-        tmp = cache_file.with_suffix(".json.tmp")
+        tmp = cache_file.with_name(cache_file.name + ".tmp")
         tmp.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         os.replace(tmp, cache_file)
     except Exception:

@@ -19,13 +19,19 @@ def _now_iso() -> str:
 
 
 def _split_front_matter(text: str):
+    """切分 YAML front matter 与正文。只认开头的 --- 和它后面第一个独占一行的 ---。"""
     if not text.startswith("---"):
         return None, None, None
-    end = text.find("\n---", 3)
+    # 找下一个独占行的 "---"
+    end = text.find("\n---\n", 3)
     if end == -1:
+        # 兼容文件末尾没有换行的情况
+        if text.rstrip().endswith("\n---"):
+            end = text.rstrip().rfind("\n---")
+            return text[3:end], "", end
         return None, None, None
     fm = text[3:end]
-    rest = text[end + 4:]
+    rest = text[end + 5:]
     return fm, rest, end
 
 
@@ -40,7 +46,12 @@ def main() -> int:
         print(f"memory file not found: {path}", file=sys.stderr)
         return 1
 
-    text = path.read_text(encoding="utf-8")
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        print(f"cannot read memory file: {exc}", file=sys.stderr)
+        return 1
+
     fm_raw, rest, _ = _split_front_matter(text)
     if fm_raw is None:
         print("front matter not found", file=sys.stderr)
@@ -48,7 +59,7 @@ def main() -> int:
 
     try:
         fm = yaml.safe_load(fm_raw) or {}
-    except Exception as exc:
+    except yaml.YAMLError as exc:
         print(f"yaml parse error: {exc}", file=sys.stderr)
         return 1
 
@@ -61,9 +72,13 @@ def main() -> int:
     fm_text = yaml.safe_dump(fm, allow_unicode=True, sort_keys=False).strip()
     new_text = f"---\n{fm_text}\n---\n{rest}"
 
-    tmp = path.with_suffix(".md.tmp")
-    tmp.write_text(new_text, encoding="utf-8")
-    os.replace(tmp, path)
+    tmp = path.with_name(path.name + ".tmp")
+    try:
+        tmp.write_text(new_text, encoding="utf-8")
+        os.replace(tmp, path)
+    except OSError as exc:
+        print(f"cannot write memory file: {exc}", file=sys.stderr)
+        return 1
 
     print(f"status updated: {args.new_status}")
     return 0

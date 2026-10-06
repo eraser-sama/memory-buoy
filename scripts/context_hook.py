@@ -41,7 +41,8 @@ def _read_front_matter(path: Path) -> dict:
     """只扫前两个 --- 之间的字段，用正则提取 status/project/saved_at。"""
     try:
         text = path.read_text(encoding="utf-8")
-    except Exception:
+    except (OSError, UnicodeDecodeError) as exc:
+        print(f"context_hook: cannot read memory file: {exc}", file=sys.stderr)
         return {}
     if not text.startswith("---"):
         return {}
@@ -56,6 +57,14 @@ def _read_front_matter(path: Path) -> dict:
             val = m.group(1).split("#", 1)[0].strip().strip('"').strip("'")
             out[key] = val
     return out
+
+
+def _normalize_path(p: str) -> str:
+    """规范化路径，跨平台比较用。"""
+    try:
+        return str(Path(p).resolve())
+    except (OSError, RuntimeError):
+        return p
 
 
 def _find_memory_file(project_root: str, session_id: str) -> Path | None:
@@ -81,8 +90,8 @@ def _find_memory_file(project_root: str, session_id: str) -> Path | None:
                         candidate = Path(project_root) / p if not Path(p).is_absolute() else Path(p)
                         if candidate.is_file():
                             return candidate
-        except OSError:
-            pass
+        except OSError as exc:
+            print(f"context_hook: cannot read latest.md: {exc}", file=sys.stderr)
     single = base / "CONTEXT_MEMORY.md"
     if single.is_file():
         return single
@@ -150,12 +159,9 @@ def main() -> None:
 
         mem_project = fm.get("project", "")
         if mem_project:
-            try:
-                if Path(mem_project).resolve() != Path(project_root).resolve():
-                    _emit("【继续】触发。当前项目与记忆文件项目不匹配，已跳过恢复，将按普通继续处理。")
-                    return
-            except Exception:
-                pass
+            if _normalize_path(mem_project) != _normalize_path(project_root):
+                _emit("【继续】触发。当前项目与记忆文件项目不匹配，已跳过恢复，将按普通继续处理。")
+                return
 
         _emit(f"【继续】触发，门控通过。请读取记忆文件 {memory}，按【下一步】继续执行。"
               "执行成功后必须调用 context_update_status.py 把 status 更新为 consumed。")
