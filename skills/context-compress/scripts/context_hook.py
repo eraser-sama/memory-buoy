@@ -10,8 +10,8 @@ from pathlib import Path
 
 CACHE_DIR = Path.home() / ".cache" / "claude-context-guardian"
 
-TRIGGER_COMPRESS = "【压缩上下文】"
-TRIGGER_RESUME = "【继续】"
+TRIGGER_COMPRESS = ("【压缩上下文】", "[COMPRESS]")
+TRIGGER_RESUME = ("【继续】", "[RESUME]")
 
 
 def _read_cache(session_id: str) -> dict:
@@ -120,11 +120,12 @@ def main() -> None:
         return
 
     prompt = payload.get("prompt", "")
+    prompt_lower = prompt.lower()
     session_id = payload.get("session_id", "")
     cache = _read_cache(session_id)
 
     # ---------- 【压缩上下文】----------
-    if TRIGGER_COMPRESS in prompt:
+    if any(t.lower() in prompt_lower for t in TRIGGER_COMPRESS):
         pct = cache.get("used_percentage")
         if not isinstance(pct, (int, float)):
             _emit("【压缩上下文】触发。但占用率未知，请用户手动确认是否压缩。")
@@ -139,7 +140,7 @@ def main() -> None:
         return
 
     # ---------- 【继续】----------
-    if TRIGGER_RESUME in prompt:
+    if any(t.lower() in prompt_lower for t in TRIGGER_RESUME):
         project_root = _project_root(payload, cache)
         memory = _find_memory_file(project_root, session_id)
 

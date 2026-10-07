@@ -9,8 +9,8 @@ Long Claude Code sessions fill up the context window, and the model gets slow an
 This project adds three layers:
 
 1. Real-time monitoring: a status line showing context usage. Yellow 0-60%, orange 60-80%, red 80%+ with a warning.
-2. Compress to disk: user types 【压缩上下文】, the task state is saved to a project-level memory file, then the user runs /compact.
-3. Resume: after /compact, user types 【继续】, and the model reads the memory file and continues from the last step.
+2. Compress to disk: user types [COMPRESS] , the task state is saved to a project-level memory file, then the user runs /compact.
+3. Resume: after /compact, user types [RESUME], and the model reads the memory file and continues from the last step.
 
 ## Install
 
@@ -18,7 +18,7 @@ This project adds three layers:
     cd claude-context-guardian
     bash install.sh
 
-install.sh copies scripts to ~/.claude/scripts/ and the skill to ~/.claude/skills/context-compress/, then tells you to merge settings.example.json into ~/.claude/settings.json.
+install.sh copies scripts to ~/.claude/skills/context-compress/scripts/ and the skill to ~/.claude/skills/context-compress/, then tells you to merge settings.example.json into ~/.claude/settings.json.
 
 ## Configuration
 
@@ -27,9 +27,8 @@ Add statusLine and hooks.UserPromptSubmit to ~/.claude/settings.json, pointing a
 ## Usage
 
 1. Status line: shows 📊 Context: 42% (~84k/200k) automatically.
-2. Compress: type 【压缩上下文】. The model saves state and tells you to run /compact.
-3. Resume: after /compact, type 【继续】. The model reads the memory file and continues.
-
+2. Compress: type [COMPRESS] (case-insensitive). The model saves state and tells you to run /compact.
+3. Resume: after /compact, type [RESUME] (case-insensitive). The model reads the memory file and continues.
 ## Requirements
 
 - Python 3.10+

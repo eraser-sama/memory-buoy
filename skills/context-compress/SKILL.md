@@ -1,15 +1,22 @@
 ---
 name: context-compress
-description: 上下文压缩与恢复。触发词：【压缩上下文】【继续】。用户输入【压缩上下文】时，把任务状态落盘到项目级记忆文件，提示用户手动 /compact；用户压缩后输入【继续】时，读取记忆文件并接着干。
+description: 上下文压缩与恢复。触发词：【压缩上下文】/ [COMPRESS]、【继续】/ [RESUME]（大小写不敏感）。用户输入【压缩上下文】或 [COMPRESS] 时，把任务状态落盘到项目级记忆文件，提示用户手动 /compact；用户压缩后输入【继续】或 [RESUME] 时，读取记忆文件并接着干。
 ---
 
 # 🧠 上下文压缩 Skill
 
 ## 触发方式
 
-本 Skill 的首选触发路径是由 UserPromptSubmit Hook 检测消息里的完整全角方括号标记后，通过 additionalContext 注入强指令。
+本 Skill 的首选触发路径是由 UserPromptSubmit Hook 检测消息里的触发标记后，通过 additionalContext 注入强指令。
 
-Fallback：若未收到 Hook 注入（Hook 未配置、换机器、Hook 异常），用户直接输入【压缩上下文】【继续】时，模型同样按下方流程执行。
+触发标记（中英双语，大小写不敏感）：
+
+- 压缩：【压缩上下文】 / [COMPRESS]
+- 恢复：【继续】 / [RESUME]
+- 单独输入 compress / resume（不带方括号）不触发。
+- 单独的“继续”“请继续”不触发。
+
+Fallback：若未收到 Hook 注入（Hook 未配置、换机器、Hook 异常），用户直接输入上述任一触发标记时，模型同样按下方流程执行。
 
 - 【压缩上下文】：触发落盘 + 提示用户手动 /compact。
 - 【继续】：压缩后恢复阶段触发，读取记忆文件并继续。
@@ -17,7 +24,7 @@ Fallback：若未收到 Hook 注入（Hook 未配置、换机器、Hook 异常�
 
 ## 脚本位置
 
-脚本目录：~/.claude/scripts/
+脚本目录：~/.claude/skills/context-compress/scripts/
 
 - context_statusline.py：状态栏，读 payload、写缓存、显示占用。
 - context_hook.py：Hook，检测触发词、读缓存、门控、注入指令。
@@ -32,7 +39,7 @@ Fallback：若未收到 Hook 注入（Hook 未配置、换机器、Hook 异常�
    - 正文写入临时文件，例如 ~/claude_tmp/context_body_<session_id>.md（多会话时带 session 后缀，避免覆盖）。
    - 调用脚本落盘：
 
-     python3 ~/.claude/scripts/context_write_memory.py --project-root <项目根> --session-id <session_id> --body <正文文件路径>
+     python3 ~/.claude/skills/context-compress/scripts/context_write_memory.py --project-root <项目根> --session-id <session_id> --body <正文文件路径>
 
    - 脚本自动生成 front matter、更新 latest.md、备份轮换、原子写。
    - 模型禁止手写 YAML front matter。
@@ -55,7 +62,7 @@ Fallback：若未收到 Hook 注入（Hook 未配置、换机器、Hook 异常�
 5. 读取“下一步”，开始执行。
 6. 执行成功后，调用脚本更新状态：
 
-   python3 ~/.claude/scripts/context_update_status.py <记忆文件路径> consumed
+   python3 ~/.claude/skills/context-compress/scripts/context_update_status.py <记忆文件路径> consumed
 
    - 脚本只修改 front matter 里的 status 和 resumed_at。
    - 脚本失败按报错三要素汇报，不假装成功。

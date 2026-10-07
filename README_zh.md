@@ -18,7 +18,7 @@ git clone <repo>
 cd claude-context-guardian
 bash install.sh
 
-install.sh 会把脚本复制到 ~/.claude/scripts/，把 Skill 复制到 ~/.claude/skills/context-compress/，并提示你手动合并 settings.example.json 到 ~/.claude/settings.json。
+install.sh 会把脚本复制到 ~/.claude/skills/context-compress/scripts/，把 Skill 复制到 ~/.claude/skills/context-compress/，并提示你手动合并 settings.example.json 到 ~/.claude/settings.json。
 
 ## 配置
 
