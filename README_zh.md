@@ -1,4 +1,4 @@
-# 🧠 claude-context-guardian
+# 🧠 memory-buoy
 
 为 Claude Code 提供上下文实时监控与压缩/恢复闭环的工具集。
 
@@ -15,7 +15,7 @@ Claude Code 会话变长后，上下文会被填满，模型开始变傻、变�
 ## 安装
 
 git clone <repo>
-cd claude-context-guardian
+cd memory-buoy
 bash install.sh
 
 install.sh 会把脚本复制到 ~/.claude/skills/context-compress/scripts/，把 Skill 复制到 ~/.claude/skills/context-compress/，并提示你手动合并 settings.example.json 到 ~/.claude/settings.json。

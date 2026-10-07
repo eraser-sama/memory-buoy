@@ -8,7 +8,7 @@ import re
 import sys
 from pathlib import Path
 
-CACHE_DIR = Path.home() / ".cache" / "claude-context-guardian"
+CACHE_DIR = Path.home() / ".cache" / "memory-buoy"
 
 TRIGGER_COMPRESS = ("【压缩上下文】", "[COMPRESS]")
 TRIGGER_RESUME = ("【继续】", "[RESUME]")

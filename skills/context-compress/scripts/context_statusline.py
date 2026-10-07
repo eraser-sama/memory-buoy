@@ -8,7 +8,7 @@ import sys
 import time
 from pathlib import Path
 
-CACHE_DIR = Path.home() / ".cache" / "claude-context-guardian"
+CACHE_DIR = Path.home() / ".cache" / "memory-buoy"
 THROTTLE_SECONDS = 3
 
 YELLOW = "\033[33m"

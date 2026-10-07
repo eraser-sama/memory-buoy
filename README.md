@@ -1,4 +1,4 @@
-# claude-context-guardian
+# memory-buoy
 
 Real-time context monitoring and compress/resume workflow for Claude Code.
 
@@ -15,7 +15,7 @@ This project adds three layers:
 ## Install
 
     git clone <repo>
-    cd claude-context-guardian
+    cd memory-buoy
     bash install.sh
 
 install.sh copies scripts to ~/.claude/skills/context-compress/scripts/ and the skill to ~/.claude/skills/context-compress/, then tells you to merge settings.example.json into ~/.claude/settings.json.
