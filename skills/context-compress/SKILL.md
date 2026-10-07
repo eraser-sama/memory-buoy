@@ -18,10 +18,6 @@ description: 上下文压缩与恢复。触发词：【压缩上下文】/ [COMP
 
 Fallback：若未收到 Hook 注入（Hook 未配置、换机器、Hook 异常），用户直接输入上述任一触发标记时，模型同样按下方流程执行。
 
-- 【压缩上下文】：触发落盘 + 提示用户手动 /compact。
-- 【继续】：压缩后恢复阶段触发，读取记忆文件并继续。
-- 单独的“继续”“请继续”不触发。
-
 ## 脚本位置
 
 脚本目录：~/.claude/skills/context-compress/scripts/
