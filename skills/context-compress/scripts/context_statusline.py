@@ -8,8 +8,16 @@ import sys
 import time
 from pathlib import Path
 
+# 让脚本在任意 cwd 下都能找到同目录的 context_mem 模块。
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from context_mem import list_pending_memories
+
 CACHE_DIR = Path.home() / ".cache" / "memory-buoy"
 THROTTLE_SECONDS = 3
+
+# 状态栏显示记忆标记：有 pending 且未过期(24h)时显示 📌。
+MEM_MARK_STALE_HOURS = 24
 
 YELLOW = "\033[33m"
 ORANGE = "\033[38;5;208m"
@@ -35,6 +43,19 @@ def _write_cache(session_id: str, payload: dict) -> None:
         os.replace(tmp, cache_file)
     except Exception:
         pass
+
+
+def _within_hours(iso: str, hours: int, now: float) -> bool:
+    """解析 ISO 8601 saved_at，判断是否在 hours 小时内。解析失败返回 True（保守显示）。"""
+    if not iso:
+        return True
+    try:
+        from datetime import datetime
+        dt = datetime.fromisoformat(iso)
+        ts = dt.timestamp()
+        return (now - ts) < hours * 3600
+    except (ValueError, OSError):
+        return True
 
 
 def main() -> None:
@@ -86,7 +107,22 @@ def main() -> None:
     uncertain = ""
     if not model_id.startswith("claude-") and size == 200000:
         uncertain = " ?"
-    print(f"{color}📊 Context: {used}% (~{tokens_k}k/{size_k}k){warn}{uncertain}{RESET}")
+
+    # 记忆标记：有未过期的 pending 记忆时显示 📌。失败静默，不影响状态栏。
+    mem_mark = ""
+    if project_dir:
+        try:
+            pending = list_pending_memories(project_dir)
+            now = time.time()
+            fresh = [
+                p for p in pending
+                if _within_hours(p[1].get("saved_at", ""), MEM_MARK_STALE_HOURS, now)
+            ]
+            if fresh:
+                mem_mark = " 📌"
+        except Exception:
+            pass
+    print(f"{color}📊 Context: {used}% (~{tokens_k}k/{size_k}k){warn}{uncertain}{mem_mark}{RESET}")
 
 
 if __name__ == "__main__":

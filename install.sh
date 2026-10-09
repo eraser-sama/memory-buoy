@@ -16,6 +16,7 @@ cp "${SCRIPT_DIR}/skills/context-compress/scripts/context_statusline.py" "${SCRI
 cp "${SCRIPT_DIR}/skills/context-compress/scripts/context_hook.py" "${SCRIPTS_DIR}/"
 cp "${SCRIPT_DIR}/skills/context-compress/scripts/context_write_memory.py" "${SCRIPTS_DIR}/"
 cp "${SCRIPT_DIR}/skills/context-compress/scripts/context_update_status.py" "${SCRIPTS_DIR}/"
+cp "${SCRIPT_DIR}/skills/context-compress/scripts/context_mem.py" "${SCRIPTS_DIR}/"
 chmod +x "${SCRIPTS_DIR}"/context_*.py
 
 echo "Skill 已安装到: ${SKILL_DIR}"

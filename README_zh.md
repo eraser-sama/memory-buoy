@@ -30,6 +30,17 @@ install.sh 会把脚本复制到 ~/.claude/skills/context-compress/scripts/，�
 2. 压缩：输入【压缩上下文】，模型落盘后提示你执行 /compact。
 3. 恢复：/compact 后输入【继续】，模型读取记忆文件接着干。
 
+## 新功能
+
+- **主动提醒** — `CONTEXT_PROMPT_AT`：上下文占用达到阈值时，Hook 会自动提醒你【压缩上下文】。默认关闭，设为 80 即开启。提醒冷却 24 小时，可用 `CONTEXT_PROMPT_COOLDOWN` 调整。
+- **落盘结构校验** — 写入记忆文件时，会检查“下一步”章节是否存在且非空（含 TODO / TBD 等占位符会拒绝），写完后还会读回文件验证有效性。
+- **记忆标记** — 状态栏在有未消费的 pending 记忆时显示 📌。
+- **多 pending 清单** — 【继续】时如果项目里有多个待恢复记忆，不再只读最新的，而是列出清单（按时间从新到旧）让你挑选。
+
+## 跨会话恢复（话题继承）
+
+记忆文件按项目根匹配，不绑定 session_id。旧话题压缩落盘后，在同一个项目里新开会话、输入【继续】，模型会读取 latest.md，从旧话题的"下一步"接着干。相比原地 /compact，这种方式能彻底清零上下文，让模型满血复活，同时不丢任务进度。
+
 ## 依赖
 
 - Python 3.10+
@@ -51,7 +62,7 @@ install.sh 会把脚本复制到 ~/.claude/skills/context-compress/scripts/，�
 
 - Hook 必须读 statusLine 缓存拿占用率。
 - Auto-compact 是否换 session_id 待验证。
-- 时间戳默认东八区（+08:00），可通过 CONTEXT_TZ_OFFSET 环境变量调整。
+- 时间戳默认 UTC，可通过 CONTEXT_TZ_OFFSET 环境变量调整为东八区等（如 CONTEXT_TZ_OFFSET=8）。
 
 ## 许可
 

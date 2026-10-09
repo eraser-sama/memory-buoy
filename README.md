@@ -29,6 +29,18 @@ Add statusLine and hooks.UserPromptSubmit to ~/.claude/settings.json, pointing a
 1. Status line: shows 📊 Context: 42% (~84k/200k) automatically.
 2. Compress: type [COMPRESS] (case-insensitive). The model saves state and tells you to run /compact.
 3. Resume: after /compact, type [RESUME] (case-insensitive). The model reads the memory file and continues.
+
+## New features
+
+- **Proactive reminder** — `CONTEXT_PROMPT_AT`: when context usage reaches the threshold, the hook automatically reminds you to [COMPRESS]. Off by default; set it to 80 to enable. Reminders are throttled to once per 24h per session; adjust with `CONTEXT_PROMPT_COOLDOWN`.
+- **Write-time validation** — when saving a memory file, the "next step" section is checked to exist and be non-empty (placeholder text like TODO / TBD is rejected), and the file is re-read after writing to verify it is valid.
+- **Memory marker** — the status line shows a 📌 when there is unconsumed pending memory in the project.
+- **Multiple pending memories** — on [RESUME], if the project has more than one pending memory, the hook lists them (newest first) so you can pick which to restore, instead of always reading the latest.
+
+## Resume across sessions (topic handover)
+
+Memory files are matched by project root, not by session id. After you compress an old task, you can start a *new* session in the same project and type [RESUME] — the model reads latest.md and continues from the old task's "next step". Compared to an in-place /compact, this fully clears the context window — the model starts fresh — without losing task progress.
+
 ## Requirements
 
 - Python 3.10+
@@ -50,7 +62,7 @@ Stored under <project>/.claude/context-memory/, with YAML front matter and Markd
 
 - Hook must read the statusLine cache to get usage.
 - Whether Auto-compact changes session_id is not yet verified.
-- Timestamps default to UTC+8; override with CONTEXT_TZ_OFFSET env var.
+- Timestamps default to UTC; override with CONTEXT_TZ_OFFSET env var.
 
 ## License
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import os
 import random
+import re
 import string
 import sys
 import time
@@ -83,6 +84,65 @@ def _update_latest(base: Path, target: Path, saved_at: str, session_id: str) -> 
         print(f"context_write_memory: latest.md update failed: {exc}", file=sys.stderr)
 
 
+def _validate_next_action(body: str):
+    """结构校验"下一步"章节：存在 + 非空 + 无占位符。返回 (消息, 是否通过)。
+
+    占位符命中：TBD、待定、待补充、placeholder、TODO（大小写不敏感）。
+    字数不硬卡，但要求有实质内容（≥5 字符且非纯标点/空白）。
+    """
+    section = re.search(r"^##\s+下一步\s*$", body, re.MULTILINE)
+    if not section:
+        return "body missing '## 下一步' section", False
+
+    tail = body[section.end():]
+    next_line = tail.lstrip("\n")
+    # 去掉下一个二级标题之前的部分
+    next_end = re.search(r"^##\s+", next_line, re.MULTILINE)
+    if next_end:
+        next_line = next_line[:next_end.start()]
+    next_line = next_line.strip()
+
+    if not next_line:
+        return "'## 下一步' section is empty", False
+    if len(next_line.strip()) < 5:
+        return f"'## 下一步' too short: {next_line!r}", False
+
+    placeholder = re.search(
+        r"\b(TBD|待定|待补充|placeholder|TODO)\b", next_line, re.IGNORECASE
+    )
+    if placeholder:
+        return f"'## 下一步' contains placeholder: {placeholder.group(0)}", False
+    return "", True
+
+
+def _verify_written(path: Path) -> bool:
+    """写后自校验：读回文件，确认 front matter 关键字段与正文存在。"""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        print(f"post-write read failed: {exc}", file=sys.stderr)
+        return False
+    if not text.startswith("---"):
+        return False
+    end = text.find("\n---", 3)
+    if end == -1:
+        return False
+    fm_block = text[3:end]
+    try:
+        fm = yaml.safe_load(fm_block) or {}
+    except yaml.YAMLError:
+        return False
+    required = ("schema", "project", "status", "saved_at", "saved_by", "resumed_at")
+    if not all(k in fm for k in required):
+        return False
+    if not fm.get("status"):
+        return False
+    body = text[end + 5:].strip()
+    if not body:
+        return False
+    return True
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--project-root", required=True)
@@ -101,6 +161,12 @@ def main() -> int:
         body = body_path.read_text(encoding="utf-8")
     except OSError as exc:
         print(f"cannot read body file: {exc}", file=sys.stderr)
+        return 1
+
+    # ---------- "下一步"质量校验（结构校验，不按字数卡）----------
+    next_action, ok = _validate_next_action(body)
+    if not ok:
+        print(f"next-step validation failed: {next_action}", file=sys.stderr)
         return 1
 
     try:
@@ -130,6 +196,11 @@ def main() -> int:
         os.replace(tmp, target)
     except OSError as exc:
         print(f"cannot write memory file: {exc}", file=sys.stderr)
+        return 1
+
+    # ---------- 写后自校验：读回验证 front matter 与正文非空 ----------
+    if not _verify_written(target):
+        print(f"post-write verification failed: {target}", file=sys.stderr)
         return 1
 
     _update_latest(target.parent, target, saved_at, args.session_id)
