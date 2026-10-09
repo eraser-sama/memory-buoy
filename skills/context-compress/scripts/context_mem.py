@@ -62,7 +62,7 @@ def memory_base(project_root: str) -> Path:
     """
     env = os.environ.get("CONTEXT_MEMORY_DIR", "")
     if env:
-        return Path(env) / _project_hash(project_root)
+        return Path(env).expanduser().resolve() / _project_hash(project_root)
     return Path(project_root) / ".claude" / "context-memory"
 
 
