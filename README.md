@@ -14,7 +14,7 @@ This project adds three layers:
 
 ## Install
 
-    git clone <repo>
+    git clone https://github.com/eraser-sama/memory-buoy.git
     cd memory-buoy
     bash install.sh
 

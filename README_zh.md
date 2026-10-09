@@ -14,7 +14,7 @@ Claude Code 会话变长后，上下文会被填满，模型开始变傻、变�
 
 ## 安装
 
-git clone <repo>
+git clone https://github.com/eraser-sama/memory-buoy.git
 cd memory-buoy
 bash install.sh
 
