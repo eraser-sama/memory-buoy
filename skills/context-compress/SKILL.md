@@ -108,11 +108,12 @@ resumed_at: ''
 
 ## 多项目与多会话
 
-- 记忆文件放 <项目根>/.claude/context-memory/。
+- 记忆文件默认放 <项目根>/.claude/context-memory/；设置环境变量 CONTEXT_MEMORY_DIR 后，统一存 $CONTEXT_MEMORY_DIR/<项目哈希>/，每个项目一个子目录保留隔离，默认行为不变。
 - 文件名优先 <session_id>.md；session_id 不稳定时用 <时间戳>_<随机6>.md。
 - 项目级 latest.md 记录最近一次记忆，恢复时第一入口。
 - session_id 在手动 /compact 后不变；Auto-compact 待验证。
 - 项目匹配用 realpath 规范化后比对。
+- 记忆文件路径由 Hook 返回，直接用它调用 context_update_status.py 更新状态，不要自己拼路径。
 
 ## 约束
 

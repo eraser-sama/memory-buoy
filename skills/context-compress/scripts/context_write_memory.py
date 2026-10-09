@@ -14,6 +14,11 @@ from pathlib import Path
 
 import yaml
 
+# 让脚本在任意 cwd 下都能找到同目录的 context_mem 模块。
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from context_mem import memory_base
+
 
 TZ_OFFSET = int(os.environ.get("CONTEXT_TZ_OFFSET", "0"))
 
@@ -27,7 +32,7 @@ def _rand6() -> str:
 
 
 def _choose_path(project_root: Path, session_id: str) -> Path:
-    base = project_root / ".claude" / "context-memory"
+    base = memory_base(str(project_root))
     base.mkdir(parents=True, exist_ok=True)
     if session_id and len(session_id) >= 8 and all(c.isalnum() or c == "-" for c in session_id):
         return base / f"{session_id}.md"
@@ -65,10 +70,9 @@ def _backup_existing(target: Path, session_id: str) -> None:
 
 def _update_latest(base: Path, target: Path, saved_at: str, session_id: str) -> None:
     latest = base / "latest.md"
-    try:
-        rel = target.relative_to(base.parent.parent)
-    except ValueError:
-        rel = target
+    # 记忆目录可能在项目根外（CONTEXT_MEMORY_DIR 场景），统一写绝对路径，
+    # 避免 relative_to 依赖"记忆目录在项目根下"。
+    rel = str(target.resolve())
     content = (
         "---\n"
         f"path: {rel}\n"

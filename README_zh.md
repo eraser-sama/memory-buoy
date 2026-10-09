@@ -51,6 +51,10 @@ install.sh 会把脚本复制到 ~/.claude/skills/context-compress/scripts/，�
 
 存放在 <项目根>/.claude/context-memory/，YAML front matter + Markdown 正文。latest.md 记录最近一次记忆文件，恢复时第一入口。
 
+设置环境变量 `CONTEXT_MEMORY_DIR` 后，所有项目的记忆统一存到 `$CONTEXT_MEMORY_DIR/<项目哈希>/`，每个项目一个子目录，保留项目隔离。若新目录为空，旧目录 `<项目根>/.claude/context-memory/` 里的 pending 记忆仍会读取（作为升级兜底）。
+
+记忆绑定项目路径：移动项目到新路径后，旧记忆不会自动迁移。
+
 ## 已实测结论
 
 - statusLine payload 含 used_percentage、workspace.project_dir、session_id、transcript_path。

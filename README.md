@@ -51,6 +51,10 @@ Memory files are matched by project root, not by session id. After you compress 
 
 Stored under <project>/.claude/context-memory/, with YAML front matter and Markdown body. latest.md points to the most recent memory file and is the first lookup entry when resuming.
 
+Set the `CONTEXT_MEMORY_DIR` environment variable to store all projects' memory under `$CONTEXT_MEMORY_DIR/<project_hash>/` instead — one subdirectory per project, so projects stay isolated. If the new directory is empty, pending memory in the legacy `<project>/.claude/context-memory/` is still read as a fallback.
+
+Memory is bound to the project path: moving a project to a new path does not automatically migrate its old memory.
+
 ## Verified behavior
 
 - statusLine payload includes used_percentage, workspace.project_dir, session_id, transcript_path.
