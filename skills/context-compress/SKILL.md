@@ -26,6 +26,14 @@ Fallback：若未收到 Hook 注入（Hook 未配置、换机器、Hook 异常�
 - context_hook.py：Hook，检测触发词、读缓存、门控、注入指令。
 - context_write_memory.py：写入记忆文件，生成 front matter，维护 latest.md。
 - context_update_status.py：恢复成功后更新 status。
+- context_mem.py：共享模块，负责 pending 记忆扫描、front matter 读取、路径规范化、项目匹配。
+
+## 新功能（v1.0.0）
+
+- **主动提醒**：环境变量 CONTEXT_PROMPT_AT（默认关闭，设为 80 即开启）。占用率 ≥ 阈值且当前消息不含触发词时，Hook 注入提醒；同一 session 冷却 24 小时，可用 CONTEXT_PROMPT_COOLDOWN 调整。
+- **落盘校验**：写入记忆文件时检查“## 下一步”章节存在、非空、不含 TBD/TODO/待定/占位符；写完读回验证 front matter 和正文有效，失败则拒绝落盘并报错。
+- **状态栏 📌**：项目里存在未过期（24 小时内）的 pending 记忆时，状态栏显示 📌。
+- **多 pending 清单**：【继续】时若项目里有多个待恢复记忆，不再只读最新一个，而是按保存时间从新到旧列出清单，让用户挑选。
 
 ## 压缩流程（收到 Hook 注入的【压缩上下文】指令时）
 
