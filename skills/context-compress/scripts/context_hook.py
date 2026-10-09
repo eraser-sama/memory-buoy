@@ -145,10 +145,8 @@ def main() -> None:
         if pct >= 60:
             _emit(f"【压缩上下文】触发。当前占用约 {pct}%，请立即执行 context-compress Skill："
                   "准备正文内容，调用 context_write_memory.py 落盘，然后提示用户执行 /compact 并说【继续】。")
-        elif pct >= 30:
-            _emit(f"【压缩上下文】触发。当前占用约 {pct}%，请先询问用户是否确认压缩。")
         else:
-            _emit(f"【压缩上下文】触发。当前占用约 {pct}%，占用很低，建议拒绝并提示用户无需压缩。")
+            _emit(f"【压缩上下文】触发。当前占用约 {pct}%，请先询问用户是否确认压缩。")
         return
 
     # ---------- 【继续】----------
